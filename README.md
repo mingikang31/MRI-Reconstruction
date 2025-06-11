@@ -5,3 +5,8 @@ Washington University in St. Louis
 - Computational Imaging Lab, Professor Kamilov 
 
 ### Overview
+
+
+### Files 
+- `metrics_playground.ipynb`: A Jupyter notebook for PSNR and SSIM metrics.
+
