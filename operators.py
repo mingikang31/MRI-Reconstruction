@@ -12,9 +12,6 @@ SAVE_PLOT_DIR = ""
 
 """Transformation Operators for MRI Data"""
 ### Grappa Operator Classes 
-
-"""Transformation Operators for MRI Data"""
-### Grappa Operator Classes 
 class GRAPPAOperator(LinearOperator):
     """
     GRAPPAOperator performs multi-coil forward simulation and GRAPPA reconstruction.

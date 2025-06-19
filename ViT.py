@@ -28,8 +28,7 @@ class ViT(nn.Module):
             d_model=d_model, 
             max_seq_len=n_patches
         )
-        self.dropout = nn.Dropout(dropout) 
-
+        
         # Transformer Encoder 
         self.encoder = nn.Sequential(
             *[TransformerEncoder(d_model, n_heads, dropout=dropout) for _ in range(n_layers)]
@@ -78,8 +77,6 @@ class ViT(nn.Module):
     def forward(self, x):         
         x = self.patch_embedding(x) 
         x = self.positional_encoding(x) 
-        x = self.dropout(x) 
-
         encoded_patches = self.encoder(x) 
         decoded_patches = self.decoder(encoded_patches)
         x = self.reconstructor(decoded_patches)

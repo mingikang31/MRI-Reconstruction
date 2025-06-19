@@ -62,5 +62,3 @@ class DDPM:
     #     predicted_noise = self.model(x_t, t)
     #     return (x_t - beta_t * predicted_noise) / torch.sqrt(alpha_cumprod_t)
         
-
-    

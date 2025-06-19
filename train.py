@@ -312,9 +312,6 @@ def improved_train(model, train_loader, test_loader, criterion, optimizer, num_e
     
     return model, best_psnr, best_psnr_epoch
 
-import os
-import torch
-
 def continue_training(model, train_loader, test_loader, criterion, optimizer, num_epochs, device=None, save_path='output/', checkpoint_path="./Saved/UNet/"):
     """
     Continue training from a saved model checkpoint

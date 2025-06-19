@@ -26,7 +26,7 @@ GRAPPA_DIR = "./data/GRAPPA_acc2"
 """Dataset Class for MRI Data"""
 def load_img_to_tensor(source_dir, max_images=8000, normalize=True, target_size=None, data_type = "tensor", device=None):
     png_images = glob.glob(os.path.join(source_dir, "**/*.png"), recursive=True) 
-    
+    png_images.sort()
     images = []
 
     for file_name in tqdm(png_images[:max_images], desc="Loading images"):
@@ -55,8 +55,6 @@ def load_img_to_tensor(source_dir, max_images=8000, normalize=True, target_size=
     
     if not images:
         raise ValueError("No images found in the specified directory.")
-
-    images = random.sample(images, len(images))  # Shuffle the images randomly
         
     if data_type == "tensor":
         images_numpy = np.array(images, dtype=np.float64)
