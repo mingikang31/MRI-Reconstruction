@@ -28,17 +28,17 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 def to_numpy(t):
     return torch.tensor(t).cpu().numpy() if isinstance(t, list) else t.cpu().numpy()
 
-# def save_colorbar(filename='colorbar.png', vmin=0, vmax=255, cmap='magma'):
-#     fig, ax = plt.subplots(figsize=(1.0, 4))  # (width, height) in inches
-#     fig.subplots_adjust(left=0.5, right=0.8)
-#     norm = plt.Normalize(vmin=vmin, vmax=vmax)
-#     cbar = plt.colorbar(
-#         plt.cm.ScalarMappable(norm=norm, cmap=cmap),
-#         cax=ax
-#     )
-#     cbar.set_label("Absolute Pixel Error", rotation=90)
-#     plt.savefig(filename, dpi=150, bbox_inches='tight')
-#     plt.close()
+def save_colorbar(filename='colorbar.png', vmin=0, vmax=255, cmap='magma'):
+    fig, ax = plt.subplots(figsize=(1.0, 4))  # (width, height) in inches
+    fig.subplots_adjust(left=0.5, right=0.8)
+    norm = plt.Normalize(vmin=vmin, vmax=vmax)
+    cbar = plt.colorbar(
+        plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+        cax=ax
+    )
+    cbar.set_label("Absolute Pixel Error", rotation=90)
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
 
 # save_colorbar("./results/colorbar.png", vmin=0, vmax=255)
 
@@ -103,12 +103,12 @@ def get_psnr():
 def video(model, echo, subdir):
     now = datetime.now()
     # name_folder = str(now.strftime("%d-%b-%Y-%H-%M-%S"))
-    path = f"/export1/project/mingi/qmri/results/Full/{model}/{echo}/{subdir}"
+    path = f"./results/{model}/{echo}/{subdir}"
     if not os.path.exists(path):
         print(f"Path {path} does not exist. Skipping video generation.")
 
-    output_dir = f'/export1/project/mingi/qmri/results/Full/{model}/output_videos/{echo}/'
-    temp_dir = f'/export1/project/mingi/qmri/results/Full/{model}/frames/{echo}/{subdir}'
+    output_dir = f'./results/{model}/output_videos/{echo}/'
+    temp_dir = f'./results/{model}/frames/{echo}/{subdir}'
     
     os.makedirs(temp_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)

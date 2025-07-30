@@ -118,7 +118,7 @@ def train(epoch):
     # Saving logic
     if epoch % 5 == 0 and epoch > 0:
         print(f'save the model at epoch {epoch}')
-        model_dir = f'/export1/project/mingi/qmri/model_zoo/{model_name}'
+        model_dir = f'./model_save/{model_name}'
         os.makedirs(model_dir, exist_ok=True)
         torch.save(model.state_dict(), f"{model_dir}/Train_N2N_{epoch:03d}.pth")
 
@@ -199,7 +199,7 @@ def val(epoch):
     if epoch % 5 == 0 and epoch > 0:
         if psnr_value >= np.max(np.array(snr_best)):
             print(f'save the model at epoch {epoch}')
-            model_dir = f'/export1/project/mingi/qmri/model_zoo/{model_name}'
+            model_dir = f'./model_save/{model_name}'
             os.makedirs(model_dir, exist_ok=True)
             torch.save(model.state_dict(), f"{model_dir}/Val_N2N_{epoch:03d}.pth")
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
 
     train_subject = ["S001", "S003", "S004", "S005", "S006", "S007", "S010"]
     val_subject = ["S012"]
-    data_root_dir ="/project/cigserver5/export1/shirin/Dataset/qmri/pt_files"
+    data_root_dir ="./data/qmri/pt_files"
 
     train_dataset = MRIEchoDataset(h5_dir=data_root_dir,subjects=train_subject)
     print(f"Total training samples: {len(train_dataset)}")
