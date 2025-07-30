@@ -213,7 +213,7 @@ if __name__ == "__main__":
     workers = 4
     epoch_number = 400
     acceleration_factor = 4
-    save_root = f'/export1/project/mingi/qmri/model_zoo/{model_name}'
+    save_root = f'./model_save/{model_name}'
     if not (os.path.exists(save_root)): os.makedirs(save_root)
 
     USE_WANDB = True

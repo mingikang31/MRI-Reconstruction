@@ -149,17 +149,17 @@ def video(model, echo, subdir):
 
 # --------- PARAMETERS ---------
 # model_path = "/export1/project/mingi/qmri/model_zoo/RUnet_Full_Dataset_GradientLoss/Val_N2N_150.pth" 
-model_path = "/export1/project/mingi/MRI-Reconstruction/model_save/RUnet/Val_N2N_150.pth" 
+model_path = "./model_save/RUnet_Full_Dataset_GradientLoss/Val_N2N_150.pth" 
 
 
-data_root_dir = "/project/cigserver5/export1/shirin/Dataset/qmri/pt_files"
+data_root_dir = "./data/qmri/pt_files"
 test_subjects = ["S012"]  # Change or add more if needed
 batch_size = 1
 workers = 1
 save_outputs = True  # Set True to save image outputs
 now = datetime.now()
 model_name = "RUnet_Full_Dataset_GradientLoss"
-output_dir = "/export1/project/mingi/qmri/results/Full/"+model_name
+output_dir = "./results/"+model_name
 simulated = True
 # ------------------------------
 
@@ -275,33 +275,30 @@ with torch.no_grad():
 
 
 
-# csv_path = os.path.join(output_dir, "psnr_results.csv")
-# with open(csv_path, "w", newline="") as csvfile:
-#     writer = csv.writer(csvfile)
-#     writer.writerow(["Slice_Index", "PSNR_ZF", "PSNR_Model", "SSIM_ZF", "SSIM_Model"])
-#     for idx, (psnr_m, psnr_b, ssim_a, ssim_b) in enumerate(
-#             zip(to_numpy(psnr_scores), to_numpy(in_psnr_score),
-#                 to_numpy(ssim_out), to_numpy(ssim_in))):
-#         writer.writerow([idx, f"{psnr_b:.4f}", f"{psnr_m:.4f}", f"{ssim_b:.4f}", f"{ssim_a:.4f}"])
+csv_path = os.path.join(output_dir, "psnr_results.csv")
+with open(csv_path, "w", newline="") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["Slice_Index", "PSNR_ZF", "PSNR_Model", "SSIM_ZF", "SSIM_Model"])
+    for idx, (psnr_m, psnr_b, ssim_a, ssim_b) in enumerate(
+            zip(to_numpy(psnr_scores), to_numpy(in_psnr_score),
+                to_numpy(ssim_out), to_numpy(ssim_in))):
+        writer.writerow([idx, f"{psnr_b:.4f}", f"{psnr_m:.4f}", f"{ssim_b:.4f}", f"{ssim_a:.4f}"])
 
-# print(f"\n📄 PSNR values saved to {csv_path}")
+print(f"\n📄 PSNR values saved to {csv_path}")
 print(f"📊 Avg PSNR (Model): {np.mean(to_numpy(psnr_scores)):.2f} | Avg PSNR (ZF): {np.mean(to_numpy(in_psnr_score)):.2f}")
 
 print(f"📊 Avg SSIM (Model): {np.mean(to_numpy(ssim_out)):.4f} | Avg SSIM (ZF): {np.mean(to_numpy(ssim_in)):.4f}")
 
 
-
 # Video generation 
-models = ["RUnet_Full_Dataset_GradientLoss"] # ["UNet_S_Sim", "AttentionUNet_S_Sim", "SPNet_S_Sim"]
+models = ["RUnet_Full_Dataset_GradientLoss"] 
 echos = ["echo_1", "echo_2"]
 subdir = ["err_in", "err_out", "gt", "in", "out"]
 
-# for model in models:
-#     for echo in echos:
-#         for sub in subdir:
-#             print(f"Generating video for {model} - {echo} - {sub}")
-#             video(model, echo, sub)
-
-# # scp -r "mingi@cigserver5.engr.wustl.edu:/export1/project/mingi/qmri/results/Full/RUnet_Full_Dataset_GradientLoss_Real" "/Users/mingikang/Desktop/qmri/Full/"
+for model in models:
+    for echo in echos:
+        for sub in subdir:
+            print(f"Generating video for {model} - {echo} - {sub}")
+            video(model, echo, sub)
 
 
