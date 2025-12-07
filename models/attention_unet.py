@@ -1,17 +1,16 @@
 """
-Normalized U-Net Model for MRI Reconstruction 
+Normalized Attention U-Net for MRI Reconstruction
 
 https://github.com/facebookresearch/fastMRI
 """
 
 import math 
-from typing import List, Tuple
 import torch 
-import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn as nn 
+import torch.nn.functional as F 
 
-class NormUnet(nn.Module):
-    """U-Net architecture with normalization layers for MRI reconstruction."""
+class NormAttentionUnet(nn.Module):
+    """Attention U-Net Archiatecture with normalization layers for MRI reconstruction"""
     def __init__(self, 
                  channels, 
                  num_pool_layers,
@@ -19,7 +18,7 @@ class NormUnet(nn.Module):
                  out_channels=2,
                  dropout=0.0):
         
-        super(NormUnet, self).__init__()
+        super(NormAttentionUnet, self).__init__()
         self.channels = channels 
         self.num_pool_layers = num_pool_layers
         self.in_channels = in_channels
@@ -28,7 +27,7 @@ class NormUnet(nn.Module):
 
 
 
-        self.unet = Unet(
+        self.unet = AttentionUnet(
             in_channels = self.in_channels,
             out_channels = self.out_channels,
             channels = self.channels,
@@ -96,15 +95,15 @@ class NormUnet(nn.Module):
         return x
 
 
-class Unet(nn.Module):
-    """Standard U-Net Architecture."""
+class AttentionUnet(nn.Module):
+    """Attention U-Net Architecture."""
     def __init__(self, 
                  in_channels, 
                  out_channels, 
                  channels, 
                  num_pool_layers, 
                  dropout):
-        super(Unet, self).__init__()
+        super(AttentionUnet, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -123,12 +122,15 @@ class Unet(nn.Module):
         # Up Sample Layers
         self.up_conv = nn.ModuleList() 
         self.up_transpose_conv = nn.ModuleList()
+        self.attention_gates = nn.ModuleList()
         for _ in range(num_pool_layers - 1):
             self.up_conv.append(ConvBlock(ch * 2, ch, dropout))
             self.up_transpose_conv.append(TransposeConvBlock(ch * 2, ch))
+            self.attention_gates.append(AttentionGate(gate_channels = ch, skip_channels = ch, inter_channels = ch // 2))
             ch //= 2
-            
-        # Final Decoder Level
+
+        # Final Decoder Level 
+        self.attention_gates.append(AttentionGate(gate_channels = ch, skip_channels = ch, inter_channels = ch // 2))
         self.up_transpose_conv.append(TransposeConvBlock(ch * 2, ch))
         self.up_conv.append(
             nn.Sequential(
@@ -136,6 +138,8 @@ class Unet(nn.Module):
                 nn.Conv2d(ch, out_channels, kernel_size=1, stride=1)
             )
         )
+
+        assert len(self.attention_gates) == len(self.up_transpose_conv)
 
     def forward(self, x):
         stack = [] 
@@ -150,24 +154,65 @@ class Unet(nn.Module):
         out = self.conv(out) 
 
         # Up Sampling Layers 
-        for conv, transpose_conv in zip(self.up_conv, self.up_transpose_conv):
-            downsample_output = stack.pop() 
-            out = transpose_conv(out) 
+        for conv, transpose_conv, attention_gate in zip(self.up_conv, self.up_transpose_conv, self.attention_gates):
+            skip_connection = stack.pop() 
+            gating_signal = transpose_conv(out) 
+
+            attended_skip_connection = attention_gate(gating_signal, skip_connection)
+
+            out = gating_signal 
 
             # Check Padding 
             padding = [0, 0, 0, 0] 
-            if out.shape[-1] != downsample_output.shape[-1]:
+            if out.shape[-1] != attended_skip_connection.shape[-1]:
                 padding[1] = 1 # Padding Right 
-            if out.shape[-2] != downsample_output[-2]:
+            if out.shape[-2] != attended_skip_connection[-2]:
                 padding[3] = 1 
             if torch.sum(torch.tensor(padding)) != 0:
                 output = F.pad(out, padding, "reflect")
 
-            out = torch.cat([out, downsample_output], dim=1)
+            out = torch.cat([out, attended_skip_connection], dim=1)
             out = conv(out)
 
         return out 
 
+class AttentionGate(nn.Module):
+    """Attention Gate Module: Filters encoder features (skip connection) based on decoder features (gating signal)"""
+    def __init__(self, gate_channels, skip_channels, inter_channels):
+        super(AttentionGate, self).__init__()
+        self.gate_channels = gate_channels # Channels in the gating signal (from decoder) 
+        self.skip_channels = skip_channels # Channels in the skip connection (from encoder)
+        self.inter_channels = inter_channels # Channels in the intermediate convolution 
+
+        # Pointwise Convolution for Gating Signal 
+        self.W_g = nn.Sequential(
+            nn.Conv2d(gate_channels, inter_channels, kernel_size=1, stride=1, padding=0, bias=True), 
+            nn.InstanceNorm2d(inter_channels)
+        )
+
+        # Pointwise Convolution for Skip Connection
+        self.W_s = nn.Sequential(
+            nn.Conv2d(skip_channels, inter_channels, kernel_size=1, stride=1, padding=0, bias=True), 
+            nn.InstanceNorm2d(inter_channels)
+        )
+
+        # Pointwise Convolution for Attention Map 
+        self.psi = nn.Sequential(
+            nn.Conv2d(inter_channels, 1, kernel_size=1, stride=1, padding=0, bias=True), 
+            nn.InstanceNorm2d(1), 
+            nn.Sigmoid()
+        )
+
+        self.relu = nn.ReLU(inplace=True)
+        
+    def forward(self, gating_signal, skip_connection):
+        gs_out = self.W_g(gating_signal)
+        sc_out = self.W_s(skip_connection)
+
+        psi = self.relu(gs_out + sc_out)
+        alpha = self.psi(psi)
+        return skip_connection * alpha
+        
 
 class ConvBlock(nn.Module):
     """Convolutional Block with two convolutional layers and ReLU activations."""
@@ -216,3 +261,5 @@ class TransposeConvBlock(nn.Module):
         )
     def forward(self, x):
         return self.layers(x)
+
+
