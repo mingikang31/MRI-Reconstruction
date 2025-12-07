@@ -6,7 +6,7 @@
 - **Parallel qMRI Reconstruction from 4x Accelerated Acquisitions**, Mingi Kang [[arXiv](https://arxiv.org/abs/2511.18232)] 
 
 ## Funding & Acknowledgements
-This project was supported by the Washington University in St. Louis Undergraduate Summer Engineering Research Fellowship (WUSEF) 2025. 
+This project was supported by the Washington University in St. Louis Undergraduate Summer Engineering Research Fellowship (WUSEF) 2025. [[WUSEF Website](https://engineering.washu.edu/academics/undergraduate-research/WUSEF.html)]
 
 Project was under the supervision of Prof. Ulugbek S. Kamilov at Washington University in St. Louis (now at University of Wisconsin-Madison) and the Computational Imaging Group (CIG) lab. 
 
